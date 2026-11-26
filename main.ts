@@ -1,22 +1,29 @@
 import { mkdirSync, renameSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-const fortune =
-  "The stars promise you great wealth in your future. They did not mention it is currently held as collateral.";
+const fortuneText =
+  "The oldest code in the room is only asking to be read before it is blamed.";
 
-// Gate mirror from RULES.txt: UTF-8 text, 1-160 chars, not only
-// whitespace, and a fortune cookie line of at most 20 words.
-if (
-  fortune.length < 1 ||
-  fortune.length > 160 ||
-  fortune.trim().length === 0 ||
-  fortune.trim().split(/\s+/).length > 20
-) {
-  throw new Error("fortune fails the entry gate");
+function validateFortune(text) {
+  const characterCount = [...text].length;
+  const containsLineBreak = /[\r\n]/.test(text);
+  const isBlank = text.trim().length === 0;
+
+  if (characterCount < 1 || characterCount > 120 || containsLineBreak || isBlank) {
+    throw new Error(`entry failed validation: ${characterCount} characters`);
+  }
 }
 
-const outDir = process.env.MAKEFUN_OUTPUT_DIR || "/output";
-mkdirSync(outDir, { recursive: true });
-const tmp = join(outDir, ".entry.txt.tmp");
-writeFileSync(tmp, fortune + "\n", "utf8");
-renameSync(tmp, join(outDir, "entry.txt"));
+validateFortune(fortuneText);
+
+function publishEntry(outputDirectory, text) {
+  mkdirSync(outputDirectory, { recursive: true });
+
+  const temporaryPath = join(outputDirectory, ".entry.txt.tmp");
+  const entryPath = join(outputDirectory, "entry.txt");
+
+  writeFileSync(temporaryPath, text, "utf8");
+  renameSync(temporaryPath, entryPath);
+}
+
+publishEntry(process.env.MAKEFUN_OUTPUT_DIR || "/output", fortuneText);
